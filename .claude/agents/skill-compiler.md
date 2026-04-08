@@ -1,1 +1,0 @@
-/Users/willvowell/twitterBookmarks/bookmark-income-engine/agents/skill-compiler.md

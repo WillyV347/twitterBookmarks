@@ -1,0 +1,15 @@
+{
+  "name": "willvowell-plugins",
+  "description": "Personal plugins for AI automation and income generation",
+  "owner": {
+    "name": "WillyV347"
+  },
+  "plugins": [
+    {
+      "name": "bookmark-income-engine",
+      "description": "Transforms Twitter/X bookmarks into scored revenue opportunities and skill upgrades with full implementation plans via multi-agent pipeline.",
+      "source": "./plugins/bookmark-income-engine",
+      "category": "productivity"
+    }
+  ]
+}
