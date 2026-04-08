@@ -1,0 +1,1 @@
+/Users/willvowell/twitterBookmarks/bookmark-income-engine/agents/opportunity-analyst.md
