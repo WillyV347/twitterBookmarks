@@ -1,0 +1,4 @@
+{
+  "description": "Bookmark Income Engine hooks — tracks processed bookmarks for deduplication",
+  "hooks": {}
+}
