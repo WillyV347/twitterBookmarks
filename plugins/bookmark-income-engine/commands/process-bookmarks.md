@@ -2,33 +2,45 @@
 name: process-bookmarks
 description: "Process X (Twitter) bookmarks through the Bookmark Income Engine — captures bookmarks via browser automation, classifies them, runs deep research on opportunities, maps skills to existing projects, and generates implementation plans. Outputs to Notion and markdown. Usage: /process-bookmarks [count]"
 argument-hint: "[count]"
-allowed-tools: ["Skill", "Agent", "Read", "Write", "Bash", "Glob", "Grep", "WebSearch", "WebFetch", "mcp__Claude_in_Chrome__tabs_context_mcp", "mcp__Claude_in_Chrome__tabs_create_mcp", "mcp__Claude_in_Chrome__navigate", "mcp__Claude_in_Chrome__computer", "mcp__Claude_in_Chrome__get_page_text", "mcp__Claude_in_Chrome__read_page", "mcp__e6baa7ac-3009-414a-8204-97d82293cc6c__notion-create-database", "mcp__e6baa7ac-3009-414a-8204-97d82293cc6c__notion-create-pages", "mcp__e6baa7ac-3009-414a-8204-97d82293cc6c__notion-create-view", "mcp__e6baa7ac-3009-414a-8204-97d82293cc6c__notion-search", "mcp__e6baa7ac-3009-414a-8204-97d82293cc6c__notion-fetch"]
+allowed-tools: ["Skill", "Agent", "Read", "Write", "Bash", "Glob", "Grep", "WebSearch", "WebFetch"]
 model: opus
 ---
 
 # Process Bookmarks Command
 
-You are the entry point for the **Bookmark Income Engine**. When the user runs `/process-bookmarks`, you orchestrate the full pipeline: capture → classify → research → plan → output.
+You are the entry point for the **Bookmark Income Engine**. When the user runs `/process-bookmarks`, you orchestrate the full pipeline: capture -> classify -> research -> plan -> output.
+
+## First: Load Configuration
+
+Read `config.yaml` from this plugin's directory (look for it relative to this skill file, in the plugin root: `../../config.yaml`).
+
+If `config.yaml` does not exist, check for `config.example.yaml`. If found, tell the user:
+> "No config.yaml found. Copy `config.example.yaml` to `config.yaml` in the plugin directory and customize it with your mission, projects, and skills before running."
+
+Stop execution if no config is found.
+
+Extract from config:
+- `default_count` — fallback bookmark count
+- `output_dir` — where to write output
+- `projects` — for Notion database synergy field options
 
 ## Parse Arguments
 
-- `$ARGUMENTS` may contain a number (target bookmark count). Default: 30.
-- Extract the count: `const count = parseInt($ARGUMENTS) || 30`
+- `$ARGUMENTS` may contain a number (target bookmark count). Default: value from config, or 30.
+- Extract the count: `const count = parseInt($ARGUMENTS) || config.default_count || 30`
 
 ## Execution Pipeline
 
 ### 1. Ensure Notion Database Exists
 
-Search Notion for a database called "Bookmark Income Pipeline":
+Search Notion for a database called "Bookmark Income Pipeline" using whatever Notion MCP tools are available in your session (search for tools containing "notion" in their name).
+
+If Notion tools are NOT available, skip this step — output will be markdown only. Inform the user.
+
+If Notion is available but the database is NOT found, create it:
 
 ```
-Use notion-search with query "Bookmark Income Pipeline"
-```
-
-If NOT found, create it:
-
-```
-Use notion-create-database with:
+Use the Notion create-database tool with:
   title: "Bookmark Income Pipeline"
   schema: CREATE TABLE (
     "Name" TITLE,
@@ -43,13 +55,15 @@ Use notion-create-database with:
     "Time to Revenue" RICH_TEXT,
     "Effort Hrs/Week" NUMBER,
     "Startup Cost" RICH_TEXT,
-    "Synergy Projects" MULTI_SELECT('weather-bot':blue, 'kalshi-arb':purple, 'lego-investor':orange, 'OrgIQ':green, 'breathingCode':red, 'weddingPlanner':pink, 'other':gray),
+    "Synergy Projects" MULTI_SELECT({dynamically built from config projects}),
     "First Step" RICH_TEXT,
     "Has Plan" CHECKBOX,
     "Processed Date" DATE,
     "Go/No-Go" SELECT('GO':green, 'CONDITIONAL':yellow, 'NO-GO':red, 'PENDING':gray)
   )
 ```
+
+Build the `Synergy Projects` MULTI_SELECT options dynamically from the project names in config.yaml.
 
 After creation, create the 4 views:
 
@@ -76,9 +90,10 @@ If the skill reports 0 bookmarks, tell the user and stop.
 
 Launch the `bookmark-orchestrator` agent with:
 - The full bookmark JSON array
-- The Notion database ID and data source ID
+- The Notion database ID and data source ID (if available)
 - Today's date
-- The target output path: `/Users/willvowell/twitterBookmarks/output/`
+- The output path from config
+- The full config context (mission, projects, skills) so it can pass to sub-agents
 
 The orchestrator handles:
 - Classification (OPPORTUNITY / SKILL / HYBRID / LOW)
@@ -90,13 +105,14 @@ The orchestrator handles:
 
 ### 4. Update Dedup Tracker
 
-After the orchestrator completes, write the processed bookmark URLs to the dedup file:
+After the orchestrator completes, append the processed bookmark URLs to the dedup tracker:
 
 ```bash
-# Append processed URLs and timestamp to last-run tracker
-echo "---" >> /Users/willvowell/twitterBookmarks/output/.last-run
-echo "run_date: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /Users/willvowell/twitterBookmarks/output/.last-run
-# The orchestrator will have written the URLs
+OUTPUT_DIR="{output_dir from config}"
+echo "---" >> "$OUTPUT_DIR/.last-run"
+echo "run_date: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$OUTPUT_DIR/.last-run"
+echo "urls:" >> "$OUTPUT_DIR/.last-run"
+# Append each processed URL
 ```
 
 ### 5. Final Summary
@@ -117,8 +133,8 @@ Print a concise summary to the user:
 2. {name} — ROI: {score} — First step: {step}
 3. {name} — ROI: {score} — First step: {step}
 
-Full results: Notion → "Bookmark Income Pipeline"
-Markdown archive: /Users/willvowell/twitterBookmarks/output/run-{date}.md
+Full results: Notion -> "Bookmark Income Pipeline"
+Markdown archive: {output_dir}/run-{date}.md
 ```
 
 ## Error Handling
@@ -126,6 +142,7 @@ Markdown archive: /Users/willvowell/twitterBookmarks/output/run-{date}.md
 - **Chrome not connected**: Tell user to install/connect Claude in Chrome extension
 - **Not logged into X**: Tell user to log into X in Chrome first
 - **Notion unavailable**: Skip Notion output, write everything to markdown, inform user
+- **Config not found**: Tell user to create config.yaml from the example template
 - **Agent failures**: Log the error, continue with remaining bookmarks. Never lose data.
 - **Empty bookmarks**: Report and suggest bookmarking more mission-aligned content
 

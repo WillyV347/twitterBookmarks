@@ -1,0 +1,61 @@
+# Bookmark Income Engine — Configuration
+# Copy this file to config.yaml and customize for your setup.
+
+# Your personal mission statement — bookmarks are scored against this lens.
+# Be specific about what "high value" means to YOU.
+mission: >
+  Financial freedom through AI automation, passive income systems,
+  and building products that run without me.
+
+# High-scoring bookmark categories (opportunity axis)
+priorities:
+  high:  # score 7-10
+    - AI automation tools and workflows
+    - Passive income / automated trading systems
+    - No-code / low-code business tools
+    - Side project monetization
+    - Developer tools that save significant time
+  medium:  # score 5-6
+    - General programming tips (if directly applicable)
+    - Industry news about AI companies or tools
+    - Networking / audience building strategies
+  low:  # score 1-4 — these get basic treatment only
+    - Pure entertainment / memes
+    - Political commentary
+    - General life advice unrelated to mission
+
+# Your project portfolio — skills and opportunities are mapped to these.
+# Remove the examples and add your own projects.
+projects:
+  - name: my-saas-app
+    path: ~/projects/my-saas-app
+    description: React/Node SaaS application for widget management
+    tech: [typescript, react, node, postgres]
+    revenue_status: active  # active | pre-revenue | side-project
+    improvement_vectors:
+      - Better onboarding flow
+      - API integrations
+      - Pricing optimization
+
+  - name: my-automation-bot
+    path: ~/projects/my-bot
+    description: Python automation bot running on VPS
+    tech: [python, automation]
+    revenue_status: active
+    improvement_vectors:
+      - Better prediction models
+      - Faster execution
+      - New market coverage
+
+# Your technical profile — used by opportunity-analyst for fit scoring.
+skills:
+  languages: [python, typescript, react]
+  platforms: [vercel, vps, chrome-extensions]
+  strengths: [automation, AI/ML, web development]
+
+# Output directory for markdown run archives and dedup tracker.
+# Relative to the plugin install location, or use an absolute path.
+output_dir: ./output
+
+# Default number of bookmarks to capture per run.
+default_count: 30

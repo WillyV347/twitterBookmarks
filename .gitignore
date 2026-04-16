@@ -1,2 +1,5 @@
 .DS_Store
 *.DS_Store
+
+# User-specific config (template is tracked as config.example.yaml)
+plugins/bookmark-income-engine/config.yaml

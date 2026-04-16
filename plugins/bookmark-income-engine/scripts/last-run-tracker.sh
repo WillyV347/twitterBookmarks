@@ -1,8 +1,13 @@
 #!/bin/bash
 # Bookmark Income Engine — Last Run Tracker
 # Appends a timestamp to the dedup file so future runs skip already-processed bookmarks
+#
+# Usage: ./last-run-tracker.sh [output_dir]
+# Default output_dir is ./output relative to the plugin root.
 
-OUTPUT_DIR="/Users/willvowell/twitterBookmarks/output"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_DIR="$(dirname "$SCRIPT_DIR")"
+OUTPUT_DIR="${1:-$PLUGIN_DIR/output}"
 LAST_RUN_FILE="$OUTPUT_DIR/.last-run"
 
 mkdir -p "$OUTPUT_DIR"
