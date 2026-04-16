@@ -51,10 +51,10 @@ implementation-planner (agent)     ← 30-day plans for GO opportunities
 
 ## Requirements
 
-- [Claude Code](https://claude.ai/code) with Cowork plugin support
-- [Claude in Chrome](https://chromewebstore.google.com/detail/claude-in-chrome/) extension (connected)
-- Logged into X (Twitter) in Chrome
-- Notion MCP server connected (for database output)
+- [Claude Code](https://claude.ai/code) desktop app or CLI
+- [Claude in Chrome](https://chromewebstore.google.com/detail/claude-in-chrome/) extension — installed and connected to your Claude Code session
+- Logged into [X (Twitter)](https://x.com) in Chrome
+- [Notion](https://www.notion.so) MCP server connected (optional — for database output; markdown output works without it)
 
 ## Installation
 
