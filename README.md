@@ -58,43 +58,50 @@ implementation-planner (agent)     ← 30-day plans for GO opportunities
 
 ## Installation
 
-### As a Cowork Plugin
+### 1. Create a Cowork Project
 
-Add to your `~/.claude/settings.json`:
+Open Claude Code (desktop app or CLI) and create a new project, or open an existing one where you want bookmark processing available.
 
-```json
-{
-  "extraKnownMarketplaces": {
-    "willvowell-plugins": {
-      "source": {
-        "source": "github",
-        "repo": "WillyV347/twitterBookmarks"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "bookmark-income-engine@willvowell-plugins": true
-  }
-}
-```
+### 2. Add the Plugin
 
-Then restart Claude Code. The `/process-bookmarks` command will be available.
+In your Cowork project, go to **Customizations** (the `+` next to "Personal plugins") and choose one of:
 
-### Scheduled Runs
+- **Add marketplace** — enter the GitHub repo `WillyV347/twitterBookmarks` to register the marketplace, then enable the **Bookmark Income Engine** plugin
+- **Upload plugin** — clone this repo locally and point to the `plugins/bookmark-income-engine` directory
 
-Pair with Claude Code's scheduled tasks for hands-free bookmark processing:
+Once added, the `/process-bookmarks` skill and all 4 agents will appear under your project's Skills and Agents.
 
-```
-/schedule create bookmark-triage --cron "0 9 * * 1,4"
-  --prompt "Run /process-bookmarks 30. After completion, summarize the top 3 opportunities."
-```
+### 3. Connect Required Tools
+
+Make sure these MCP servers are connected in your project:
+
+- **Claude in Chrome** — for browser automation (bookmark capture)
+- **Notion** — for database output (optional but recommended)
+
+### 4. Set Up a Scheduled Task
+
+The real power is running this on autopilot. In your Cowork project, create a scheduled task:
+
+1. Go to **Scheduled Tasks** (or use `/schedule`)
+2. Create a new task with a name like `bookmark-triage`
+3. Set a cron schedule (e.g., twice a week: `0 9 * * 1,4`)
+4. Set the prompt:
+   ```
+   Run /process-bookmarks 30. After completion, summarize the top 3 opportunities.
+   ```
+
+The engine will run on schedule, capture your latest bookmarks, research opportunities, and populate your Notion pipeline — no manual intervention needed.
 
 ## Usage
+
+Once installed, run manually anytime:
 
 ```
 /process-bookmarks        # Process up to 30 bookmarks (default)
 /process-bookmarks 50     # Process up to 50 bookmarks
 ```
+
+Or let your scheduled task handle it automatically.
 
 ## Output
 
