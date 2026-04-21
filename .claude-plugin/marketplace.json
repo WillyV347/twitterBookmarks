@@ -10,6 +10,15 @@
       "description": "Transforms Twitter/X bookmarks into scored revenue opportunities and skill upgrades with full implementation plans via multi-agent pipeline.",
       "source": "./plugins/bookmark-income-engine",
       "category": "productivity"
+    },
+    {
+      "name": "breathingcode-web-team",
+      "description": "A full enterprise web development team rendered as Claude agents. Twenty role-agents spanning strategy, design, engineering, and growth, plus ~40 specialist skills including industry-context caching, mockup-spec with anti-generic guardrails, and Claude Design handoff choreography.",
+      "source": {
+        "source": "github",
+        "repo": "WillyV347/breathingcode-web-team"
+      },
+      "category": "workflow"
     }
   ]
 }
