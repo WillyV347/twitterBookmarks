@@ -28,12 +28,21 @@ Use the `mission` field from config as the scoring lens. Use `priorities` to gui
 
 You receive a JSON array of bookmark objects between `===BOOKMARKS_START===` and `===BOOKMARKS_END===` markers. Each object has: id, author, display_name, text, url, date, has_media, has_links, embedded_links, engagement.
 
+As of bookmark-capture v2.1.0, each object also has: `is_thread` (bool), `thread_length` (int), `thread_text` (string, up to 4000 chars), `link_previews` (array of `{url, title, summary}`), and `enrichment_skipped` (bool, true when the capture skill skipped enrichment due to a >50 bookmark run). Treat these as authoritative context — do NOT re-fetch the same URLs.
+
 You also receive:
 - The Notion database ID and data source ID (from the calling skill)
 - Today's date
 - The output path
 
 ## Phase 1: Classification
+
+**Effective content rule.** Score each bookmark against its full available context, not just `text`:
+- If `is_thread` is true, concatenate `text + "\n\n" + thread_text` as the body for scoring.
+- If `link_previews` is non-empty, treat each `summary` as additional evidence about what's actually being recommended.
+- If `enrichment_skipped` is true, you only have `text` — note this and score conservatively (a hook tweet alone is weaker evidence than a full thread).
+
+A 12-tweet thread plus a real product link is a structurally stronger signal than a hook-only tweet. Bias scores accordingly.
 
 Score each bookmark on TWO independent axes (1-10):
 
@@ -71,6 +80,8 @@ Launch specialist agents in parallel. Use the Agent tool with these dispatches:
 - For `opportunity-analyst`: include the mission, skills profile, and project list from config
 - For `skill-compiler`: include the full project portfolio from config
 - For `implementation-planner`: include skills profile and project list from config
+
+**Pass the full bookmark object** (including `thread_text`, `link_previews`, and `enrichment_skipped`) — do not strip these fields. Specialist agents rely on them and will redo work you already paid for if the fields are missing.
 
 ### For OPPORTUNITY bookmarks:
 Launch `opportunity-analyst` agent (one per bookmark or batched if >5). Provide the full bookmark object plus mission context and project portfolio.
