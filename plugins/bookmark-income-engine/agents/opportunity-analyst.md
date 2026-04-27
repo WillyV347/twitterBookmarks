@@ -21,19 +21,26 @@ Use these to evaluate fit. Do NOT assume any specific projects or tech stack —
 
 A bookmark object with: author, text, url, embedded_links, engagement metrics, plus context from the orchestrator including mission, skills, and projects.
 
+As of bookmark-capture v2.1.0, each bookmark also includes `is_thread` (bool), `thread_length` (int), `thread_text` (own-author continuation, up to 4000 chars), `link_previews` (array of `{url, title, summary}` already fetched during capture), and `enrichment_skipped` (bool). **Use these — do not re-fetch URLs that already have a `link_previews` entry.**
+
 ## 5-Step Research Protocol
 
 ### Step 1: Claim Extraction
 
-Parse the bookmark and extract:
+**Effective body for parsing.** Use the full available context, not just `text`:
+- If `is_thread` is true, parse `text + thread_text` as one document. Threads bury the actual method in tweets 4-8 — extracting only from `text` will systematically miss real claims.
+- If `link_previews` has entries, treat each `title + summary` as additional source material — the thing the tweet is *recommending* often lives there, not in the tweet itself.
+- If `enrichment_skipped` is true, note this in `evidence_quality` (downgrade to WEAK or ANECDOTAL by default — you're scoring off a hook).
+
+Parse and extract:
 - **Business model**: What exactly is being proposed? (SaaS, automation service, content, affiliate, marketplace, trading, consulting, API product, etc.)
-- **Revenue claims**: Any specific numbers mentioned. Quote them exactly.
+- **Revenue claims**: Any specific numbers mentioned. Quote them exactly. Pull from `thread_text` too — that's usually where dollar amounts and timelines live.
 - **Time claims**: How long does the author claim it takes?
-- **Tools/platforms**: What specific tools, APIs, or platforms are mentioned?
+- **Tools/platforms**: What specific tools, APIs, or platforms are mentioned? Cross-reference with `link_previews` to identify the actual products.
 - **Skill requirements**: What does someone need to know to do this?
 - **Moat claim**: Does the author explain why this isn't easily copied?
 
-If the tweet is vague ("I make $10k/mo with AI"), note the vagueness as a red flag.
+If the tweet is vague ("I make $10k/mo with AI") AND no thread or link previews flesh it out, note the vagueness as a red flag. If the thread or link previews provide specifics, the original vagueness is no longer a red flag — the evidence has been supplied.
 
 ### Step 2: Web Research
 
@@ -45,7 +52,7 @@ Use `WebSearch` to investigate. Run at least 3 searches:
 
 For each promising search result, use `WebFetch` to read the actual page content. Don't rely on search snippets alone.
 
-If the bookmark contains embedded links, research those specific tools/platforms too.
+**Skip redundant fetches.** If the bookmark contains embedded links, check `link_previews` first — capture already fetched the title and ~1000 chars of body. Only run `WebFetch` on those URLs when you need *more* than the preview (e.g., pricing details on a deeper page). For URLs marked `summary: "fetch_failed: ..."` in `link_previews`, you can attempt a fresh `WebFetch` once — capture may have hit a transient block.
 
 ### Step 3: Market Assessment
 

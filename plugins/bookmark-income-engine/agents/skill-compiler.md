@@ -22,11 +22,18 @@ Use these to map skills. Do NOT assume any specific projects — work with whate
 
 One or more bookmark objects containing skill/technique/tool content, plus the project portfolio context from the orchestrator.
 
+As of bookmark-capture v2.1.0, each bookmark includes `is_thread`, `thread_length`, `thread_text` (own-author continuation up to 4000 chars), `link_previews` (array of `{url, title, summary}` for embedded URLs), and `enrichment_skipped`. The actual technique is almost always buried in `thread_text` or `link_previews`, not in the hook `text`.
+
 ## Processing Protocol
 
 For each bookmark:
 
 ### 1. Skill Extraction
+
+**Effective body for extraction.** Use the full available context:
+- If `is_thread` is true, extract from `text + thread_text` as one document. The hook tweet rarely names the actual technique — the thread does.
+- If `link_previews` has entries, parse `title + summary` of each — the linked tool, library, or post is usually the skill being recommended (e.g., a tweet that says "this changed how I prompt" with a link to a blog post — the skill is in the blog post).
+- If `enrichment_skipped` is true, you're working from the hook only. Mark extracted skills with lower confidence and avoid fabricating specifics that aren't actually present.
 
 Identify every discrete skill, technique, or tool mentioned:
 - **Category**: AI_TECHNIQUE / TOOL / FRAMEWORK / CODE_PATTERN / MONETIZATION_TACTIC / WORKFLOW / PROMPT_TECHNIQUE
