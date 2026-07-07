@@ -39,15 +39,31 @@ done
 If a config is found, note which candidate matched. If it matched **only** the plugin bundle path (#3), tell the user:
 > "Loaded config.yaml from the plugin bundle path, which will NOT persist between sessions. Copy it to `~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml` (or set `$BOOKMARK_ENGINE_CONFIG`) so future sessions find it."
 
-If **none** of the candidates exist, do **not** invent or reconstruct a config from the Notion schema or any other source. Stop and tell the user **exactly which paths were checked**, listing each candidate that was tried, e.g.:
+If **none** of the candidates exist, do **not** invent or reconstruct a config from the Notion schema, the `config.example.yaml` placeholders, or any other source — a fabricated config (e.g. the placeholder `my-saas-app` / `my-automation-bot` projects) is worse than no config and must never be used to run the pipeline.
+
+Instead, **bootstrap a persistent config** so this stops recurring every session. Copy `config.example.yaml` from the plugin bundle to the stable path (candidate #2) — which lives outside the read-only plugin mount and therefore persists — creating the directory if needed:
+
+```bash
+STABLE_DIR="$HOME/Documents/Claude/Projects/AI Projects/bookmark-income-engine"
+STABLE_CONFIG="$STABLE_DIR/config.yaml"
+# EXAMPLE = config.example.yaml in the plugin bundle root (../.. from this skill/command file)
+mkdir -p "$STABLE_DIR"
+cp "$EXAMPLE" "$STABLE_CONFIG"
+```
+
+Then **stop** and tell the user exactly what happened — which paths were checked and what you created:
 > "No config.yaml found. Checked, in order:
 > 1. `$BOOKMARK_ENGINE_CONFIG` (not set)
 > 2. `~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml` (missing)
-> 3. `<plugin-root>/config.yaml` (missing)
+> 3. `<plugin-root>/config.yaml` (missing — and read-only, would not persist)
 >
-> Copy `config.example.yaml` to the stable path (#2 above) — outside the plugin install directory — and customize it with your mission, projects, and skills before running. Optionally set `$BOOKMARK_ENGINE_CONFIG` to point at it."
+> I copied the template to the stable path (#2):
+> `~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml`
+> It still has placeholder projects (`my-saas-app`, `my-automation-bot`). Edit it with your real mission, project portfolio, and skills, then re-run `/process-bookmarks`. I will not run the pipeline against the placeholders, and I will not guess your values."
 
-Stop execution if no config is found.
+If the stable directory cannot be created or written (e.g. sandbox restrictions), fall back to reporting the three checked paths and asking the user to create `config.yaml` at the stable path (or point `$BOOKMARK_ENGINE_CONFIG` at one) themselves.
+
+Stop execution if no real (non-placeholder) config is available. If the resolved config still contains the example placeholders (`my-saas-app` / `my-automation-bot`), treat it as not yet configured: stop and ask the user to fill in their real values rather than processing bookmarks against fake projects.
 
 Extract from config:
 - `default_count` — fallback bookmark count

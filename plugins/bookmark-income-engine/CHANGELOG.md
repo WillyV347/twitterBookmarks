@@ -2,6 +2,27 @@
 
 All notable changes to the Bookmark Income Engine plugin are documented here.
 
+## [1.3.0]
+
+### Added
+- **Self-bootstrapping config.** When no `config.yaml` is found at any candidate
+  location, the `process-bookmarks` skill/command now copies `config.example.yaml`
+  to the stable, persistent path
+  (`~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml`),
+  creating the directory if needed, then stops and asks the user to fill in real
+  values. This closes the last manual gap: a fresh session in a read-only plugin
+  mount can now leave behind a persistent config instead of dead-ending.
+
+### Changed
+- The skill now explicitly refuses to run the pipeline against placeholder config.
+  If the resolved config still contains the example projects (`my-saas-app` /
+  `my-automation-bot`), it is treated as "not yet configured" and execution stops
+  — guarding against both fabricated configs and unedited templates.
+
+> Note: an already-installed plugin must be updated/reinstalled from the
+> marketplace for these changes to take effect; merging to the repository does not
+> refresh a cached plugin install in a running session.
+
 ## [1.2.0]
 
 ### Fixed
