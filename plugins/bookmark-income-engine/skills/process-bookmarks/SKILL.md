@@ -12,10 +12,40 @@ You are the entry point for the **Bookmark Income Engine**. When the user runs `
 
 ## First: Load Configuration
 
-Read `config.yaml` from this plugin's directory (look for it relative to this skill file, in the plugin root: `../../config.yaml`).
+Resolve `config.yaml` deterministically by checking candidate locations **in priority order** and using the first one that exists. Do **not** assume any single hardcoded path — the plugin's own install directory is often mounted read-only (e.g. in Cowork / plugin-mount contexts), so a config saved there cannot persist and must never be treated as the canonical location.
 
-If `config.yaml` does not exist, check for `config.example.yaml`. If found, tell the user:
-> "No config.yaml found. Copy `config.example.yaml` to `config.yaml` in the plugin directory and customize it with your mission, projects, and skills before running."
+Check these candidates, in order:
+
+1. **`$BOOKMARK_ENGINE_CONFIG`** — if this environment variable is set, use the file it points to. This is the explicit override and always wins.
+2. **`~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml`** — the documented stable path in the user's own workspace. This is the recommended home for the real config because it lives outside the plugin install directory and persists across sessions.
+3. **`../../config.yaml`** (relative to this skill file, i.e. the plugin bundle root) — **last-resort fallback only.** A config found or written here **will not persist between sessions** in plugin-mount contexts. If this is the only match, load it but warn the user to move it to the stable path above.
+
+Resolve the path with a single deterministic check, for example:
+
+```bash
+CANDIDATES=(
+  "${BOOKMARK_ENGINE_CONFIG:-}"
+  "$HOME/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml"
+  "$(cd "$(dirname "$0")/../.." 2>/dev/null && pwd)/config.yaml"   # plugin bundle (won't persist)
+)
+CONFIG_PATH=""
+for c in "${CANDIDATES[@]}"; do
+  [ -n "$c" ] && [ -f "$c" ] && { CONFIG_PATH="$c"; break; }
+done
+```
+
+(When resolving relative to this skill file rather than a script, the plugin-root candidate is `<this-skill-dir>/../../config.yaml`.)
+
+If a config is found, note which candidate matched. If it matched **only** the plugin bundle path (#3), tell the user:
+> "Loaded config.yaml from the plugin bundle path, which will NOT persist between sessions. Copy it to `~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml` (or set `$BOOKMARK_ENGINE_CONFIG`) so future sessions find it."
+
+If **none** of the candidates exist, do **not** invent or reconstruct a config from the Notion schema or any other source. Stop and tell the user **exactly which paths were checked**, listing each candidate that was tried, e.g.:
+> "No config.yaml found. Checked, in order:
+> 1. `$BOOKMARK_ENGINE_CONFIG` (not set)
+> 2. `~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml` (missing)
+> 3. `<plugin-root>/config.yaml` (missing)
+>
+> Copy `config.example.yaml` to the stable path (#2 above) — outside the plugin install directory — and customize it with your mission, projects, and skills before running. Optionally set `$BOOKMARK_ENGINE_CONFIG` to point at it."
 
 Stop execution if no config is found.
 
@@ -142,7 +172,7 @@ Markdown archive: {output_dir}/run-{date}.md
 - **Chrome not connected**: Tell user to install/connect Claude in Chrome extension
 - **Not logged into X**: Tell user to log into X in Chrome first
 - **Notion unavailable**: Skip Notion output, write everything to markdown, inform user
-- **Config not found**: Tell user to create config.yaml from the example template
+- **Config not found**: List every candidate path that was checked (see "Load Configuration"), then tell the user to copy `config.example.yaml` to the stable workspace path (outside the plugin install dir) or set `$BOOKMARK_ENGINE_CONFIG`. Never reconstruct config from the Notion schema.
 - **Agent failures**: Log the error, continue with remaining bookmarks. Never lose data.
 - **Empty bookmarks**: Report and suggest bookmarking more mission-aligned content
 
