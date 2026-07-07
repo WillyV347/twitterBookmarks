@@ -1,5 +1,20 @@
 # Bookmark Income Engine — Configuration
-# Copy this file to config.yaml and customize for your setup.
+#
+# IMPORTANT: Copy this file to a config.yaml that lives OUTSIDE the plugin
+# install directory. The plugin bundle is often mounted read-only (Cowork /
+# plugin-mount contexts), so a config.yaml saved inside it will NOT persist
+# between sessions — every fresh session would find nothing.
+#
+# Recommended stable location (created automatically if missing):
+#   ~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml
+#
+# The process-bookmarks skill resolves the config in this priority order:
+#   1. $BOOKMARK_ENGINE_CONFIG        (env var override — always wins)
+#   2. ~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml
+#   3. <plugin-root>/config.yaml      (last-resort fallback; will NOT persist)
+#
+# So either copy this file to path #2, or set $BOOKMARK_ENGINE_CONFIG to point
+# wherever you keep it. Then customize the fields below for your setup.
 
 # Your personal mission statement — bookmarks are scored against this lens.
 # Be specific about what "high value" means to YOU.

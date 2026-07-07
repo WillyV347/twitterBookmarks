@@ -75,15 +75,23 @@ Once added, the `/process-bookmarks` skill and all 4 agents will appear under yo
 
 The plugin uses a `config.yaml` file to personalize scoring and project mapping. Without it, the engine won't know what opportunities are relevant to *you*.
 
-1. Navigate to the plugin directory (where the plugin was installed)
-2. Copy the template: `cp config.example.yaml config.yaml`
-3. Edit `config.yaml` with your:
+**Save `config.yaml` OUTSIDE the plugin install directory.** The plugin bundle is often mounted read-only (Cowork / plugin-mount contexts), so a config saved inside it will not persist between sessions.
+
+1. Choose a stable location outside the plugin. Recommended:
+   `~/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml`
+   (or any path you set via the `$BOOKMARK_ENGINE_CONFIG` environment variable)
+2. Copy the template there:
+   `cp config.example.yaml "$HOME/Documents/Claude/Projects/AI Projects/bookmark-income-engine/config.yaml"`
+3. Edit that `config.yaml` with your:
    - **Mission statement** -- bookmarks are scored against this lens
    - **Project portfolio** -- your existing projects (name, path, tech stack, revenue status)
    - **Skills profile** -- your languages, platforms, and strengths
    - **Output directory** -- where markdown archives are saved
 
-The config file is gitignored so your personal data stays local.
+The skill resolves the config in this order: `$BOOKMARK_ENGINE_CONFIG`, then the
+recommended stable path above, then `<plugin-root>/config.yaml` as a last-resort
+fallback (which will not persist). The config file is gitignored so your personal
+data stays local.
 
 ### 4. Connect Required Tools
 
